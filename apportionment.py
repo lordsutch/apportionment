@@ -41,7 +41,7 @@ def equal_proportions(data: pd.DataFrame, seats: int) -> pd.DataFrame:
         state_maxpri = data.PRIORITY.idxmax()
         maxpri = data.PRIORITY.max()
         data.loc[state_maxpri, 'SEATS'] += 1
-        print(f'{seatcount+1:4d} {data.SEATS[state_maxpri]:2d} {state_maxpri:30} {maxpri:12.3f}')
+        print(f'{seatcount+1:4d} {data.SEATS[state_maxpri]:2d} {state_maxpri:30} {maxpri:12.3f}', file=sys.stderr)
     return pd.DataFrame(dict(population=data.POPULATION, seats=data.SEATS))
 
 
@@ -58,7 +58,7 @@ def equal_proportions_no_losers(data: pd.DataFrame,
         state_maxpri = data.PRIORITY.idxmax()
         maxpri = data.PRIORITY.max()
         data.loc[state_maxpri, 'SEATS'] += 1
-        print(f'{seatcount+1:4d} {data.SEATS[state_maxpri]:2d} {state_maxpri:30} {maxpri:12.3f} {data.SEATS[state_maxpri]-data.APP2020[state_maxpri]:2d}')
+        print(f'{seatcount+1:4d} {data.SEATS[state_maxpri]:2d} {state_maxpri:30} {maxpri:12.3f} {data.SEATS[state_maxpri]-data.APP2020[state_maxpri]:2d}', file=sys.stderr)
     return pd.DataFrame(dict(population=data.POPULATION, seats=data.SEATS))
 
 
@@ -77,9 +77,9 @@ def largest_remainders(data: pd.DataFrame, seats: int) -> pd.DataFrame:
 
     remainders = (data.POPULATION/quota) - data.SEATS
     sorted_remainders = remainders.sort_values(ascending=False)
-    print(sorted_remainders, remaining_seats)
+    print(sorted_remainders, remaining_seats, file=sys.stderr)
     states_to_add = sorted_remainders.iloc[:remaining_seats]
-    print(states_to_add)
+    print(states_to_add, file=sys.stderr)
 
     data.loc[states_to_add.index, 'SEATS'] += 1
 
