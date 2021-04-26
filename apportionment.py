@@ -82,7 +82,7 @@ def main() -> None:
     data = pd.read_csv(args.input, index_col=0)
     data['APP2010'] = data.APP2020 - data.APPCHANGE
 
-    seats = math.exp(data.POPULATION.sum(), 1/3) if args.cube_root else args.seats
+    seats = math.pow(data.POPULATION.sum(), 1/3) if args.cube_root else args.seats
     
     result = args.app_method(data, seats)
 
