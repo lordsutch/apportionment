@@ -91,10 +91,13 @@ def largest_remainders(data: pd.DataFrame, seats: int) -> pd.DataFrame:
 
 def main() -> None:
     parser = argparse.ArgumentParser('calculate apportionment tables')
-    parser.add_argument('--seats', '-s', type=int, default=435,
-                        help='number of seats to apportion (default: 435)')
-    parser.add_argument('--cube-root', '-c', action='store_true',
-                        help='use cube root rule to decide number of seats')
+    seat_group = parser.add_mutually_exclusive_group(required=False)
+    seat_group.add_argument('--seats', '-s', type=int, default=435,
+                            help='number of seats to apportion (default: 435)')
+    seat_group.add_argument('--cube-root', '-c', action='store_true',
+                            help='use cube root rule to decide number of seats')
+    seat_group.add_argument('--wyoming-rule', '-w', action='store_true',
+                            help='use "Wyoming rule" (smallest state entitled to exactly one seat) to decide number of seats')
     parser.add_argument('--output', '-o', type=str, default=None,
                         help='output file (default: stdout)')
     parser.add_argument('input', default='apportionment-2020-table01.csv',
@@ -113,7 +116,13 @@ def main() -> None:
     data = pd.read_csv(args.input, index_col=0)
     data['APP2010'] = data.APP2020 - data.APPCHANGE
 
-    seats = math.pow(data.POPULATION.sum(), 1/3) if args.cube_root else args.seats
+    if args.cube_root:
+        seats = math.pow(data.POPULATION.sum(), 1/3)
+    elif args.wyoming_rule:
+        seats = data.POPULATION.sum() // data.POPULATION.min()
+    else:
+        seats = args.seats
+    print(f'Apportioning {seats} seats...', file=sys.stderr)
     
     result = args.app_method(data, seats)
 
