@@ -24,6 +24,7 @@
 
 
 import argparse
+import math
 import numpy as np
 import pandas as pd
 import sys
@@ -63,7 +64,9 @@ def equal_proportions_no_losers(data: pd.DataFrame,
 def main() -> None:
     parser = argparse.ArgumentParser('calculate apportionment tables')
     parser.add_argument('--seats', '-s', type=int, default=435,
-                        help='number of seats to apportion')
+                        help='number of seats to apportion (default: 435)')
+    parser.add_argument('--cube-root', '-c', action='store_true',
+                        help='use cube root rule to decide number of seats')
     parser.add_argument('--output', '-o', type=str, default=None,
                         help='output file (default: stdout)')
     parser.add_argument('input', default='apportionment-2020-table01.csv',
@@ -79,7 +82,9 @@ def main() -> None:
     data = pd.read_csv(args.input, index_col=0)
     data['APP2010'] = data.APP2020 - data.APPCHANGE
 
-    result = args.app_method(data, args.seats)
+    seats = math.exp(data.POPULATION.sum(), 1/3) if args.cube_root else args.seats
+    
+    result = args.app_method(data, seats)
 
     result.to_csv(args.output or sys.stdout)
     
