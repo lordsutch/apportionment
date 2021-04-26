@@ -83,6 +83,9 @@ def largest_remainders(data: pd.DataFrame, seats: int) -> pd.DataFrame:
 
     data.loc[states_to_add.index, 'SEATS'] += 1
 
+    # Sanity check
+    assert data.SEATS.sum() == seats
+
     return pd.DataFrame(dict(population=data.POPULATION, seats=data.SEATS.astype(int)))
 
 
@@ -113,6 +116,8 @@ def main() -> None:
     seats = math.pow(data.POPULATION.sum(), 1/3) if args.cube_root else args.seats
     
     result = args.app_method(data, seats)
+
+    result['difference'] = result.seats - data.APP2020
 
     result.to_csv(args.output or sys.stdout)
     
