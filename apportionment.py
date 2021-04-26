@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 import sys
 
+
 def equal_proportions(data: pd.DataFrame, seats: int) -> pd.DataFrame:
     total_population = data['POPULATION'].sum()
     
@@ -61,6 +62,30 @@ def equal_proportions_no_losers(data: pd.DataFrame,
     return pd.DataFrame(dict(population=data.POPULATION, seats=data.SEATS))
 
 
+def largest_remainders(data: pd.DataFrame, seats: int) -> pd.DataFrame:
+    total_population = data['POPULATION'].sum()
+
+    # Hare/Hamilton quota
+    quota = total_population / seats
+    
+    # Each state gets the total population / seats to start
+    # with a minimum of 1 seat
+    data["SEATS"] = data.POPULATION // quota
+    data.loc[data.SEATS < 1, 'SEATS'] = 1
+
+    remaining_seats = int(seats - data.SEATS.sum())
+
+    remainders = (data.POPULATION/quota) - data.SEATS
+    sorted_remainders = remainders.sort_values(ascending=False)
+    print(sorted_remainders, remaining_seats)
+    states_to_add = sorted_remainders.iloc[:remaining_seats]
+    print(states_to_add)
+
+    data.loc[states_to_add.index, 'SEATS'] += 1
+
+    return pd.DataFrame(dict(population=data.POPULATION, seats=data.SEATS.astype(int)))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser('calculate apportionment tables')
     parser.add_argument('--seats', '-s', type=int, default=435,
@@ -76,6 +101,9 @@ def main() -> None:
                         default=equal_proportions, action='store_const',
                         const=equal_proportions_no_losers,
                         help='ignore seats, make no states lose using equal proportions')
+    parser.add_argument('--largest-remainders', dest='app_method',
+                        const=largest_remainders, action='store_const',
+                        help='use the largest remainders method')
     
     args = parser.parse_args()
 
