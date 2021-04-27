@@ -31,7 +31,7 @@ import sys
 
 
 def equal_proportions(data: pd.DataFrame, seats: int,
-                      no_losers=False) -> pd.DataFrame:
+                      no_losers=False, **kwargs) -> pd.DataFrame:
     total_population = data['POPULATION'].sum()
     
     # Each state gets one seat to start
@@ -52,7 +52,8 @@ def equal_proportions(data: pd.DataFrame, seats: int,
 
 
 def largest_remainders(data: pd.DataFrame, seats: int,
-                       no_losers=False) -> pd.DataFrame:
+                       no_losers=False, quota_type='hare',
+                       **kwargs) -> pd.DataFrame:
     if no_losers:
         while 1:
             # Solve this iteratively... otherwise I think we might run into the
@@ -67,8 +68,13 @@ def largest_remainders(data: pd.DataFrame, seats: int,
     
     total_population = data['POPULATION'].sum()
 
-    # Hare/Hamilton quota
-    quota = math.floor(total_population / seats)
+    if quota_type == 'droop':
+        quota = math.floor(total_population / (seats+1)) + 1
+    elif quota_type == 'hagenbach-bischoff':
+        quota = math.floor(total_population / (seats+1))
+    else:
+        # Hare/Hamilton quota (default)
+        quota = math.floor(total_population / seats)
 
     # Each state gets the total population / seats to start
     # with a minimum of 1 seat
@@ -112,6 +118,10 @@ def main() -> None:
     method_group.add_argument('--largest-remainders', dest='app_method',
                               const=largest_remainders, action='store_const',
                               help='use the largest remainders method')
+    parser.add_argument('--quota-method', '-Q', dest='quota_type',
+                        choices=('hare', 'droop', 'hagenbach-bischoff'),
+                        default='hare',
+                        help='quota formula to use for largest remainders (default: Hare-Hamilton)')
     parser.add_argument('--output', '-o', type=str, default=None,
                         help='output file (default: stdout)')
     parser.add_argument('input', default='apportionment-2020-table01.csv',
@@ -137,7 +147,8 @@ def main() -> None:
     else:
         print('Ensuring all states keep existing seats...', file=sys.stderr)
     
-    result = args.app_method(data, seats, args.no_losers)
+    result = args.app_method(data, seats, args.no_losers,
+                             quota_type=args.quota_type)
 
     result['Difference2020'] = result.SEATS - data.APP2020
     result['Difference2010'] = result.SEATS - data.APP2010
