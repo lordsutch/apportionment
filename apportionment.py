@@ -158,7 +158,7 @@ def main() -> None:
     data['APP2010'] = data.APP2020 - data.APPCHANGE
 
     if args.cube_root:
-        seats = math.pow(data.POPULATION.sum(), 1/3)
+        seats = math.floor(math.pow(data.POPULATION.sum(), 1/3))
     elif args.wyoming_rule:
         seats = data.POPULATION.sum() // data.POPULATION.min()
     elif args.quota:
