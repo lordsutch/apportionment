@@ -125,15 +125,15 @@ def main() -> None:
                             help='use "Wyoming rule" (smallest state entitled to exactly one seat) to decide number of seats')
     seat_group.add_argument('--quota', '-q', type=int,
                             help='use a (rough) population quota per seat to decide number of seats')
-    parser.add_argument('--no-losers', action='store_true',
+    parser.add_argument('--no-losers', '-n', action='store_true',
                         help='make no states lose seats vs. 2010; seats will be treated as a minimum')
     method_group = parser.add_mutually_exclusive_group(required=False)
     method_group.add_argument('--equal-proportions', '--highest-averages',
-                              dest='app_method',
+                              '-e', dest='app_method',
                               const=equal_proportions, action='store_const',
                               default=equal_proportions,
                               help='use the equal proportions method (default)')
-    method_group.add_argument('--largest-remainders', dest='app_method',
+    method_group.add_argument('--largest-remainders', '-l', dest='app_method',
                               const=largest_remainders, action='store_const',
                               help='use the largest remainders method')
     parser.add_argument('--divisor', '-D',
