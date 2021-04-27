@@ -31,7 +31,8 @@ import sys
 
 
 def equal_proportions(data: pd.DataFrame, seats: int,
-                      no_losers=False, **kwargs) -> pd.DataFrame:
+                      no_losers=False, divisor_type='huntington-hill',
+                      **kwargs) -> pd.DataFrame:
     total_population = data['POPULATION'].sum()
     
     # Each state gets one seat to start
@@ -39,7 +40,21 @@ def equal_proportions(data: pd.DataFrame, seats: int,
 
     while ((seatcount := data.SEATS.sum()) < seats or
            no_losers and (data.SEATS < data.APP2010).any()):
-        data['PRIORITY'] = data.POPULATION / np.sqrt(data.SEATS*(data.SEATS+1))
+        # Stolen from https://en.wikipedia.org/wiki/Highest_averages_method
+        if divisor_type == 'jefferson':
+            divisor = data.SEATS+1
+        elif divisor_type == 'webster':
+            divisor = (data.SEATS*2)+1
+        elif divisor_type == 'imperiali':
+            divisor = (data.SEATS/2)+1
+        elif divisor_type == 'danish':
+            divisor = (data.SEATS*3)+1
+        elif divisor_type == 'hamilton':
+            divisor = data.SEATS
+        else: # Huntington-Hill, default
+            divisor = np.sqrt(data.SEATS*(data.SEATS+1))
+
+        data['PRIORITY'] = data.POPULATION / divisor
         state_maxpri = data.PRIORITY.idxmax()
         maxpri = data.PRIORITY.max()
         data.loc[state_maxpri, 'SEATS'] += 1
@@ -72,6 +87,8 @@ def largest_remainders(data: pd.DataFrame, seats: int,
         quota = math.floor(total_population / (seats+1)) + 1
     elif quota_type == 'hagenbach-bischoff':
         quota = math.floor(total_population / (seats+1))
+    elif quota_type == 'imperiali':
+        quota = math.floor(total_population / (seats+2))
     else:
         # Hare/Hamilton quota (default)
         quota = math.floor(total_population / seats)
@@ -111,15 +128,22 @@ def main() -> None:
     parser.add_argument('--no-losers', action='store_true',
                         help='make no states lose seats vs. 2010; seats will be treated as a minimum')
     method_group = parser.add_mutually_exclusive_group(required=False)
-    method_group.add_argument('--equal-proportions', dest='app_method',
+    method_group.add_argument('--equal-proportions', '--highest-averages',
+                              dest='app_method',
                               const=equal_proportions, action='store_const',
                               default=equal_proportions,
                               help='use the equal proportions method (default)')
     method_group.add_argument('--largest-remainders', dest='app_method',
                               const=largest_remainders, action='store_const',
                               help='use the largest remainders method')
+    parser.add_argument('--divisor', '-D',
+                        choices=('huntington-hill', 'jefferson', 'webster',
+                                 'imperiali', 'adams'),
+                        default='huntington-hill',
+                        help='divisor to use for highest averages (default: Huntington-Hill)')
     parser.add_argument('--quota-method', '-Q', dest='quota_type',
-                        choices=('hare', 'droop', 'hagenbach-bischoff'),
+                        choices=('hare', 'droop', 'hagenbach-bischoff',
+                                 'imperiali'),
                         default='hare',
                         help='quota formula to use for largest remainders (default: Hare-Hamilton)')
     parser.add_argument('--output', '-o', type=str, default=None,
@@ -148,7 +172,8 @@ def main() -> None:
         print('Ensuring all states keep existing seats...', file=sys.stderr)
     
     result = args.app_method(data, seats, args.no_losers,
-                             quota_type=args.quota_type)
+                             quota_type=args.quota_type,
+                             divisor_type=args.divisor)
 
     result['Difference2020'] = result.SEATS - data.APP2020
     result['Difference2010'] = result.SEATS - data.APP2010
