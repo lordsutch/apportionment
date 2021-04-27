@@ -138,7 +138,7 @@ def main() -> None:
                               help='use the largest remainders method')
     parser.add_argument('--divisor', '-D',
                         choices=('huntington-hill', 'jefferson', 'webster',
-                                 'imperiali', 'adams'),
+                                 'imperiali', 'adams', 'hamilton', 'danish'),
                         default='huntington-hill',
                         help='divisor to use for highest averages (default: Huntington-Hill)')
     parser.add_argument('--quota-method', '-Q', dest='quota_type',
