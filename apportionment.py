@@ -51,7 +51,7 @@ def equal_proportions(data: pd.DataFrame, seats: int,
             divisor = (data.SEATS/2)+1
         elif divisor_type == 'danish':
             divisor = (data.SEATS*3)+1
-        elif divisor_type == 'hamilton':
+        elif divisor_type == 'adams':
             divisor = data.SEATS
         else: # Huntington-Hill, default
             divisor = np.sqrt(data.SEATS*(data.SEATS+1))
@@ -140,7 +140,7 @@ def main() -> None:
                               help='use the largest remainders method')
     parser.add_argument('--divisor', '-D',
                         choices=('huntington-hill', 'jefferson', 'webster',
-                                 'imperiali', 'adams', 'hamilton', 'danish'),
+                                 'imperiali', 'adams', 'danish'),
                         default='huntington-hill',
                         help='divisor to use for highest averages (default: Huntington-Hill)')
     parser.add_argument('--quota-method', '-Q', dest='quota_type',
