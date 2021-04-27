@@ -100,6 +100,8 @@ def main() -> None:
                             help='use cube root rule to decide number of seats')
     seat_group.add_argument('--wyoming-rule', '-w', action='store_true',
                             help='use "Wyoming rule" (smallest state entitled to exactly one seat) to decide number of seats')
+    seat_group.add_argument('--quota', '-q', type=int,
+                            help='use a (rough) population quota per seat to decide number of seats')
     parser.add_argument('--no-losers', action='store_true',
                         help='make no states lose seats vs. 2010; seats will be treated as a minimum')
     method_group = parser.add_mutually_exclusive_group(required=False)
@@ -125,6 +127,8 @@ def main() -> None:
         seats = math.pow(data.POPULATION.sum(), 1/3)
     elif args.wyoming_rule:
         seats = data.POPULATION.sum() // data.POPULATION.min()
+    elif args.quota:
+        seats = data.POPULATION.sum() // args.quota
     else:
         seats = args.seats
 
